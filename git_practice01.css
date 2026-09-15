@@ -20,11 +20,11 @@
 
         .pixel-border-sm {
             box-shadow: 
-                -2px 0 0 0 #000,
-                2px 0 0 0 #000,
-                0 -2px 0 0 #000,
-                0 2px 0 0 #000;
-            border: 2px solid #78350f;
+                -2px 0 0 0 #c57272,
+                2px 0 0 0 #aa3838,
+                0 -2px 0 0 #2bbdc2,
+                0 2px 0 0 #0617b1;
+            border: 2px solid #b6107f;
         }
 
         /* 點陣逐格感上下浮動效果 */
@@ -53,7 +53,7 @@
             transition: all 0.1s ease;
         }
         .pixel-btn-gold:hover:not(:disabled) {
-            box-shadow: 0 0 10px #f59e0b, 0 0 20px #d97706;
+            box-shadow: 0 0 10px #f50ba7, 0 0 20px #5c062a;
             transform: translateY(-2px);
         }
         .pixel-btn-gold:active:not(:disabled) {
@@ -79,9 +79,9 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #09090b;
-            border: 2px solid #451a03;
+            background: #16d4ab;
+            border: 2px solid #00e279;
         }
         ::-webkit-scrollbar-thumb {
-            background: #78350f;
+            background: #02c422;
         }

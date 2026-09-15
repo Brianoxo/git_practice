@@ -3,9 +3,9 @@ tailwind.config = {
                 extend: {
                     colors: {
                         dungeon: {
-                            950: '#09090b',
-                            900: '#121216',
-                            800: '#1a1a24',
+                            950: '#bd297fff',
+                            900: '#23b8a4ff',
+                            800: '#1a8b3cff',
                         }
                     },
                     fontFamily: {

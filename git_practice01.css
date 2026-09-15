@@ -1,0 +1,87 @@
+/* 啟用 crisp-edges 保留像素風顆粒感 */
+        canvas, img, .pixelated {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* 復古像素框線 (模擬硬派 RPG 視窗) */
+        .pixel-border {
+            box-shadow: 
+                -4px 0 0 0 #000,
+                4px 0 0 0 #000,
+                0 -4px 0 0 #000,
+                0 4px 0 0 #000,
+                -2px -2px 0 0 #78350f,
+                2px -2px 0 0 #78350f,
+                -2px 2px 0 0 #78350f,
+                2px 2px 0 0 #78350f;
+            border: 4px solid #451a03;
+        }
+
+        .pixel-border-sm {
+            box-shadow: 
+                -2px 0 0 0 #000,
+                2px 0 0 0 #000,
+                0 -2px 0 0 #000,
+                0 2px 0 0 #000;
+            border: 2px solid #78350f;
+        }
+
+        /* 點陣逐格感上下浮動效果 */
+        @keyframes pixel-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .animate-pixel-float {
+            animation: pixel-float 3s steps(2, end) infinite;
+        }
+
+        /* 旋轉沙漏 Loading 動畫 */
+        @keyframes pixel-spin {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-pixel-spin {
+            animation: pixel-spin 1s steps(4, end) infinite;
+        }
+
+        /* 魔法金黃霓虹發光 Hover / Focus */
+        .pixel-btn-gold {
+            transition: all 0.1s ease;
+        }
+        .pixel-btn-gold:hover:not(:disabled) {
+            box-shadow: 0 0 10px #f59e0b, 0 0 20px #d97706;
+            transform: translateY(-2px);
+        }
+        .pixel-btn-gold:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 2px #f59e0b;
+        }
+
+        /* 血色霓虹發光 (批次刪除) */
+        .pixel-btn-danger {
+            transition: all 0.1s ease;
+        }
+        .pixel-btn-danger:hover:not(:disabled) {
+            box-shadow: 0 0 12px #ef4444, 0 0 24px #991b1b;
+            transform: translateY(-2px);
+        }
+        .pixel-btn-danger:active:not(:disabled) {
+            transform: translateY(2px);
+        }
+
+        /* 自訂捲軸外觀 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+            border: 2px solid #451a03;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #78350f;
+        }

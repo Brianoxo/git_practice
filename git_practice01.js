@@ -3,7 +3,7 @@ tailwind.config = {
                 extend: {
                     colors: {
                         dungeon: {
-                            950: '#bd297fff',
+                            950: '#07dd72ff',
                             900: '#23b8a4ff',
                             800: '#1a8b3cff',
                         }

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素風 MMORPG 奇幻地下城看板</title>
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dungeon: {
+                            950: '#09090b',
+                            900: '#121216',
+                            800: '#1a1a24',
+                        }
+                    },
+                    fontFamily: {
+                        pixel: ['"Courier New", Courier, monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 啟用 crisp-edges 保留像素風顆粒感 */
+        canvas, img, .pixelated {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* 復古像素框線 (模擬硬派 RPG 視窗) */
+        .pixel-border {
+            box-shadow: 
+                -4px 0 0 0 #000,
+                4px 0 0 0 #000,
+                0 -4px 0 0 #000,
+                0 4px 0 0 #000,
+                -2px -2px 0 0 #78350f,
+                2px -2px 0 0 #78350f,
+                -2px 2px 0 0 #78350f,
+                2px 2px 0 0 #78350f;
+            border: 4px solid #451a03;
+        }
+
+        .pixel-border-sm {
+            box-shadow: 
+                -2px 0 0 0 #000,
+                2px 0 0 0 #000,
+                0 -2px 0 0 #000,
+                0 2px 0 0 #000;
+            border: 2px solid #78350f;
+        }
+
+        /* 點陣逐格感上下浮動效果 */
+        @keyframes pixel-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .animate-pixel-float {
+            animation: pixel-float 3s steps(2, end) infinite;
+        }
+
+        /* 旋轉沙漏 Loading 動畫 */
+        @keyframes pixel-spin {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-pixel-spin {
+            animation: pixel-spin 1s steps(4, end) infinite;
+        }
+
+        /* 魔法金黃霓虹發光 Hover / Focus */
+        .pixel-btn-gold {
+            transition: all 0.1s ease;
+        }
+        .pixel-btn-gold:hover:not(:disabled) {
+            box-shadow: 0 0 10px #f59e0b, 0 0 20px #d97706;
+            transform: translateY(-2px);
+        }
+        .pixel-btn-gold:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 2px #f59e0b;
+        }
+
+        /* 血色霓虹發光 (批次刪除) */
+        .pixel-btn-danger {
+            transition: all 0.1s ease;
+        }
+        .pixel-btn-danger:hover:not(:disabled) {
+            box-shadow: 0 0 12px #ef4444, 0 0 24px #991b1b;
+            transform: translateY(-2px);
+        }
+        .pixel-btn-danger:active:not(:disabled) {
+            transform: translateY(2px);
+        }
+
+        /* 自訂捲軸外觀 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+            border: 2px solid #451a03;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #78350f;
+        }
+    </style>
+</head>
+<body class="bg-dungeon-950 text-amber-100 font-pixel min-h-screen selection:bg-amber-500 selection:text-black p-4 md:p-8">
+
+    <!-- 頂部標題區塊 -->
+    <header class="max-w-7xl mx-auto mb-8 text-center animate-pixel-float">
+        <div class="inline-block px-6 py-3 bg-black/95 pixel-border border-amber-800">
+            <h1 class="text-2xl md:text-4xl font-bold tracking-widest text-amber-400 drop-shadow-[0_2px_0_rgba(180,83,9,1)]">
+                ⚔️ 像素風 MMORPG 地下城 Shareboard ⚔️
+            </h1>
+            <p class="text-xs text-amber-600 mt-2 tracking-wider">SHAREBOARD MODULE // REAL-TIME SYNC SYSTEM</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- 左側：發布 / 登錄表單 (1 欄寬) -->
+        <section class="lg:col-span-1">
+            <div class="bg-black/80 pixel-border p-6 relative">
+                <div class="absolute -top-3 left-4 bg-amber-950 px-3 text-xs text-amber-400 border border-amber-700">
+                    📜 登錄 Shareboard 資訊
+                </div>
+
+                <form id="dungeonForm" class="space-y-4 mt-2">
+                    <div>
+                        <label class="block text-xs text-amber-300 mb-1">角色名稱 (character_name)：</label>
+                        <input type="text" id="character_name" required placeholder="例如：索爾、暗影魔龍" 
+                            class="w-full bg-dungeon-950 border-2 border-amber-900 px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 pixel-border-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-amber-300 mb-1">玩家 ID (player_ID)：</label>
+                        <input type="text" id="player_ID" required placeholder="例如：Player#1024" 
+                            class="w-full bg-dungeon-950 border-2 border-amber-900 px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 pixel-border-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-amber-300 mb-1">職階 (role)：</label>
+                        <select id="role" class="w-full bg-dungeon-950 border-2 border-amber-900 px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 pixel-border-sm">
+                            <option value="狂戰士">狂戰士 (Berserker)</option>
+                            <option value="元素法師">元素法師 (Mage)</option>
+                            <option value="神聖牧師">神聖牧師 (Cleric)</option>
+                            <option value="地下城怪物">地下城怪物 (Monster)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-amber-300 mb-1">流派配置 (build)：</label>
+                        <input type="text" id="build" placeholder="例如：暴擊流、全能坦" 
+                            class="w-full bg-dungeon-950 border-2 border-amber-900 px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 pixel-border-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-amber-300 mb-1">相關連結 (link)：</label>
+                        <input type="url" id="link" placeholder="https://..." 
+                            class="w-full bg-dungeon-950 border-2 border-amber-900 px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 pixel-border-sm">
+                    </div>
+
+                    <button type="submit" id="submitBtn" 
+                        class="w-full py-3 bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold text-sm pixel-border-sm pixel-btn-gold uppercase tracking-wider flex items-center justify-center space-x-2">
+                        <span>⚡ 詠唱並寫入契約</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 右側：Shareboard 即時動態清單 (2 欄寬) -->
+        <section class="lg:col-span-2 space-y-4">
+            <div class="bg-black/80 pixel-border p-6 relative min-h-[420px] flex flex-col justify-between">
+                
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <div class="bg-amber-950 px-3 py-1 text-xs text-amber-400 border border-amber-700">
+                        🗺️ Shareboard 戰情面板
+                    </div>
+                    <!-- 批次刪除按鈕 -->
+                    <button id="batchDeleteBtn" disabled
+                        class="px-4 py-2 bg-zinc-800 text-zinc-500 text-xs font-bold pixel-border-sm pixel-btn-danger cursor-not-allowed">
+                        🔥 驅逐勾選目標 (0)
+                    </button>
+                </div>
+
+                <!-- 載入中 Loading 畫面 -->
+                <div id="loadingOverlay" class="absolute inset-0 bg-black/70 z-10 flex flex-col items-center justify-center space-y-3">
+                    <div class="text-4xl animate-pixel-spin">⏳</div>
+                    <p class="text-xs text-amber-400 tracking-widest animate-pulse">正在穿梭時空連結 Shareboard 核心...</p>
+                </div>
+
+                <!-- 表格資料容器 -->
+                <div class="overflow-x-auto flex-grow mb-4">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b-2 border-amber-900 text-amber-500 bg-amber-950/40">
+                                <th class="p-3 w-10 text-center">
+                                    <input type="checkbox" id="selectAllCheckbox" class="cursor-pointer accent-amber-600 w-4 h-4">
+                                </th>
+                                <th class="p-3">id</th>
+                                <th class="p-3">character_name</th>
+                                <th class="p-3">player_ID</th>
+                                <th class="p-3">role</th>
+                                <th class="p-3">build</th>
+                                <th class="p-3">link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dungeonTableBody" class="divide-y divide-amber-950/60">
+                            <!-- 動態渲染資料將會插入於此 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 底部重新整理控制 -->
+                <div class="flex justify-between items-center text-xs text-amber-600 border-t border-amber-950 pt-3">
+                    <span id="recordCount">當前總筆數：0</span>
+                    <button onclick="fetchDungeonData()" class="hover:text-amber-400 underline decoration-dotted">
+                        [ 重新掃描 Shareboard ]
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 復古 RPG 風格卷軸提示框 -->
+    <div id="rpgModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-dungeon-900 pixel-border max-w-md w-full p-6 text-center space-y-4 animate-pixel-float">
+            <div class="text-amber-400 text-lg font-bold border-b border-amber-800 pb-2" id="modalTitle">
+                📜 地下城神諭
+            </div>
+            <p class="text-xs text-amber-200 leading-relaxed" id="modalMessage">
+                訊息內容...
+            </p>
+            <div id="modalButtons" class="flex justify-center space-x-4 pt-2">
+                <button id="modalConfirmBtn" class="px-6 py-2 bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold text-xs pixel-border-sm pixel-btn-gold">
+                    確定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 程式邏輯核心 -->
+    <script>
+        // ==========================================
+        // 1. 全域變數設定區
+        // ==========================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbfjIgNb_MqxSqYAdNY9XMBRHqVZORt38iQe-ejTiC9XA0QnU22GllRc6DSxe6GA8a/exec"; 
+
+        let currentDungeonData = [];
+
+        // ==========================================
+        // 2. 資料讀取 (GET 請求)
+        // ==========================================
+        async function fetchDungeonData() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const tableBody = document.getElementById('dungeonTableBody');
+            const recordCount = document.getElementById('recordCount');
+
+            loadingOverlay.classList.remove('hidden');
+
+            try {
+                if (!API_URL || API_URL.includes("YOUR_APPS_SCRIPT_URL_HERE")) {
+                    console.warn("⚠️ API_URL 尚未設定，正在載入模擬 Shareboard 範例資料...");
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    currentDungeonData = [
+                        { id: 1, character_name: "阿瑟王", player_ID: "Knight#7777", role: "狂戰士", build: "暴擊反擊流", link: "https://example.com/build1" },
+                        { id: 2, character_name: "梅林", player_ID: "Wizard#1001", role: "元素法師", build: "極致詠唱速", link: "https://example.com/build2" },
+                        { id: 3, character_name: "貞德", player_ID: "Holy#3333", role: "神聖牧師", build: "全能防護罩", link: "https://example.com/build3" }
+                    ];
+                } else {
+                    const response = await fetch(`${API_URL}?action=read`, {
+                        method: 'GET',
+                        redirect: 'follow'
+                    });
+                    if (!response.ok) throw new Error(`連線失敗: ${response.statusText}`);
+                    const result = await response.json();
+                    if (result.status === "error") {
+                        throw new Error(result.message || "讀取資料失敗");
+                    }
+                    currentDungeonData = Array.isArray(result) ? result : (result.data || []);
+                }
+
+                renderTable(currentDungeonData);
+                recordCount.textContent = `當前總筆數：${currentDungeonData.length}`;
+
+            } catch (error) {
+                console.error("Shareboard 通訊異常:", error);
+                showRpgModal("⚠️ 傳送門故障", "無法與 Shareboard 建立心靈感應：<br>" + error.message);
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-400">通訊中斷，請確認 API_URL 是否正確。</td></tr>`;
+            } finally {
+                loadingOverlay.classList.add('hidden');
+                resetSelectionState();
+            }
+        }
+
+        // 渲染表格與對應 Shareboard 欄位 (id, character_name, player_ID, role, build, link)
+        function renderTable(dataList) {
+            const tableBody = document.getElementById('dungeonTableBody');
+            tableBody.innerHTML = '';
+
+            if (dataList.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-amber-600">目前 Shareboard 內空無一物...</td></tr>`;
+                return;
+            }
+
+            dataList.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-amber-950/30 transition-colors";
+
+                // 根據 role 類別給予對應色彩發光的 Badge 標籤
+                let badgeClass = "bg-zinc-800 text-zinc-300 border-zinc-600";
+                let glowStyle = "";
+                const roleVal = item.role || '';
+                if (roleVal.includes("狂戰士")) {
+                    badgeClass = "bg-red-950 text-red-400 border-red-700";
+                    glowStyle = "box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);";
+                } else if (roleVal.includes("元素法師") || roleVal.includes("法師")) {
+                    badgeClass = "bg-purple-950 text-purple-300 border-purple-700";
+                    glowStyle = "box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);";
+                } else if (roleVal.includes("神聖牧師") || roleVal.includes("牧師")) {
+                    badgeClass = "bg-amber-950 text-amber-300 border-amber-600";
+                    glowStyle = "box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);";
+                } else if (roleVal.includes("怪物")) {
+                    badgeClass = "bg-emerald-950 text-emerald-400 border-emerald-700";
+                    glowStyle = "box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);";
+                }
+
+                // 處理 link 顯示格式
+                let linkHtml = '-';
+                if (item.link) {
+                    linkHtml = `<a href="${escapeHtml(item.link)}" target="_blank" class="text-amber-400 underline hover:text-amber-200 truncate max-w-[120px] inline-block align-bottom">${escapeHtml(item.link)}</a>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-3 text-center">
+                        <input type="checkbox" class="row-checkbox cursor-pointer accent-amber-600 w-4 h-4" value="${item.id || item.character_name}">
+                    </td>
+                    <td class="p-3 text-amber-600 font-mono text-xs">${item.id || 'N/A'}</td>
+                    <td class="p-3 text-amber-100 font-bold">${escapeHtml(item.character_name)}</td>
+                    <td class="p-3 text-amber-300/90 font-mono text-[11px]">${escapeHtml(item.player_ID)}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 text-[10px] border pixel-border-sm inline-block ${badgeClass}" style="${glowStyle}">
+                            ${escapeHtml(item.role)}
+                        </span>
+                    </td>
+                    <td class="p-3 text-amber-200">${escapeHtml(item.build || '-')}</td>
+                    <td class="p-3">${linkHtml}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            bindCheckboxEvents();
+        }
+
+        // ==========================================
+        // 3. 資料寫入 (POST 請求)
+        // ==========================================
+        document.getElementById('dungeonForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const payload = {
+                action: "create",
+                character_name: document.getElementById('character_name').value.trim(),
+                player_ID: document.getElementById('player_ID').value.trim(),
+                role: document.getElementById('role').value,
+                build: document.getElementById('build').value.trim(),
+                link: document.getElementById('link').value.trim()
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span>✨ 詠唱契約中...</span>`;
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                if (API_URL && !API_URL.includes("YOUR_APPS_SCRIPT_URL_HERE")) {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload),
+                        redirect: 'follow'
+                    });
+                    if (!response.ok) throw new Error(`連線失敗: ${response.statusText}`);
+                    const result = await response.json();
+                    if (result.status !== "success") {
+                        throw new Error(result.message || "後端寫入失敗");
+                    }
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    const maxId = currentDungeonData.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0);
+                    currentDungeonData.unshift({ ...payload, id: maxId + 1 });
+                }
+
+                showRpgModal("📜 Shareboard 登錄成功", `角色 <span class="text-amber-400 font-bold">${payload.character_name}</span> 已經成功寫入資料表！`);
+
+                document.getElementById('dungeonForm').reset();
+                fetchDungeonData();
+
+            } catch (error) {
+                console.error("寫入錯誤:", error);
+                showRpgModal("⚠️ 詠唱被打斷", "無法將資料寫入 Shareboard：<br>" + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<span>⚡ 詠唱並寫入契約</span>`;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        });
+
+        // ==========================================
+        // 4. 資料多選刪除功能 (Batch Delete)
+        // ==========================================
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+
+        selectAllCheckbox.addEventListener('change', function() {
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            updateBatchDeleteButtonState();
+        });
+
+        function bindCheckboxEvents() {
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            rowCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    updateBatchDeleteButtonState();
+                    const allChecked = Array.from(rowCheckboxes).every(item => item.checked);
+                    const anyChecked = Array.from(rowCheckboxes).some(item => item.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = anyChecked && !allChecked;
+                });
+            });
+        }
+
+        function updateBatchDeleteButtonState() {
+            const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            if (selectedCount > 0) {
+                batchDeleteBtn.disabled = false;
+                batchDeleteBtn.textContent = `🔥 驅逐勾選目標 (${selectedCount})`;
+                batchDeleteBtn.className = "px-4 py-2 bg-red-700 text-white text-xs font-bold pixel-border-sm pixel-btn-danger cursor-pointer";
+            } else {
+                batchDeleteBtn.disabled = true;
+                batchDeleteBtn.textContent = `🔥 驅逐勾選目標 (0)`;
+                batchDeleteBtn.className = "px-4 py-2 bg-zinc-800 text-zinc-500 text-xs font-bold pixel-border-sm pixel-btn-danger cursor-not-allowed";
+            }
+        }
+
+        batchDeleteBtn.addEventListener('click', function() {
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+            if (selectedIds.length === 0) return;
+
+            showRpgModal(
+                "💀 禁忌審判確認",
+                `是否確定要將選取的 <span class="text-red-400 font-bold">${selectedIds.length} 筆</span> 目標從 Shareboard 中流放？此動作無法復原！`,
+                true,
+                async () => {
+                    await executeBatchDelete(selectedIds);
+                }
+            );
+        });
+
+        async function executeBatchDelete(ids) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.remove('hidden');
+
+            try {
+                const payload = {
+                    action: "delete",
+                    ids: ids
+                };
+
+                if (API_URL && !API_URL.includes("YOUR_APPS_SCRIPT_URL_HERE")) {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload),
+                        redirect: 'follow'
+                    });
+                    if (!response.ok) throw new Error(`連線失敗: ${response.statusText}`);
+                    const result = await response.json();
+                    if (result.status !== "success") {
+                        throw new Error(result.message || "後端刪除失敗");
+                    }
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    currentDungeonData = currentDungeonData.filter(item => !ids.includes(item.id) && !ids.includes(item.character_name));
+                }
+
+                showRpgModal("📜 深淵判決完成", `成功將 <span class="text-red-400 font-bold">${ids.length}</span> 個目標從 Shareboard 移除。`);
+                fetchDungeonData();
+
+            } catch (error) {
+                console.error("刪除錯誤:", error);
+                showRpgModal("⚠️ 黑暗魔力反噬", "執行流放儀式時發生錯誤：<br>" + error.message);
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        function resetSelectionState() {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+            updateBatchDeleteButtonState();
+        }
+
+        // ==========================================
+        // 5. 輔助工具函式
+        // ==========================================
+        function showRpgModal(title, htmlMessage, showCancel = false, onConfirm = null) {
+            const modal = document.getElementById('rpgModal');
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalMessage').innerHTML = htmlMessage;
+
+            const modalButtons = document.getElementById('modalButtons');
+            if (showCancel) {
+                modalButtons.innerHTML = `
+                    <button id="modalCancelBtn" class="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs pixel-border-sm">取消</button>
+                    <button id="modalConfirmBtn" class="px-5 py-2 bg-red-700 hover:bg-red-600 text-white font-bold text-xs pixel-border-sm pixel-btn-danger">確認流放</button>
+                `;
+                document.getElementById('modalCancelBtn').onclick = () => modal.classList.add('hidden');
+                document.getElementById('modalConfirmBtn').onclick = () => {
+                    modal.classList.add('hidden');
+                    if (typeof onConfirm === 'function') onConfirm();
+                };
+            } else {
+                modalButtons.innerHTML = `
+                    <button id="modalConfirmBtn" class="px-6 py-2 bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold text-xs pixel-border-sm pixel-btn-gold">確定</button>
+                `;
+                document.getElementById('modalConfirmBtn').onclick = () => modal.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchDungeonData();
+        });
+    </script>
+</body>
+</html>
